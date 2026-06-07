@@ -71,7 +71,10 @@
         color="white"
         text-color="black"
         label="Prihvati odgovor"
-        @click="alert = true; getCorrectAnswerFromBotanicalFamily()"
+        @click="
+          alert = true;
+          getCorrectAnswerFromBotanicalFamily();
+        "
       />
       <q-btn
         color="white"
@@ -102,8 +105,12 @@
             <div class="text-h6">Rezultat</div>
           </q-card-section>
 
-          <q-card-section class="q-pt-none"> Broj tocnih odgovora: {{ brojTocnih }}  </q-card-section>
-           <q-card-section class="q-pt-none"> Broj netocnih odgovora: {{ brojNetocnih }}  </q-card-section>
+          <q-card-section class="q-pt-none">
+            Broj tocnih odgovora: {{ brojTocnih }}
+          </q-card-section>
+          <q-card-section class="q-pt-none">
+            Broj netocnih odgovora: {{ brojNetocnih }}
+          </q-card-section>
           <q-card-actions align="right">
             <q-btn flat label="OK" color="primary" v-close-popup></q-btn>
           </q-card-actions>
@@ -119,7 +126,7 @@ import { ref } from "vue";
 // varijabla u koju se sprema naziv biljke iz random generiranog pitanja
 var randomGeneratedPlant;
 var tocnostOdgovora = "Netočno";
-var brojTocnih ="2";
+var brojTocnih = "2";
 var brojNetocnih = "1";
 
 export default {
@@ -128,7 +135,8 @@ export default {
       color: ref("option-0-random"),
       alert: ref(false),
       zavrsniPopup: ref(false),
-      brojTocnih,brojNetocnih,
+      brojTocnih,
+      brojNetocnih,
       tocnostOdgovora,
       if() {
         tocnostOdgovora = "Točno";
@@ -149,15 +157,15 @@ export default {
         myNode.removeChild(myNode.lastChild);
       }
       var i = "Kojoj botaničkoj porodici pripada ";
-      var id = getRandomPlantSpeciesID()
+      var id = getRandomPlantSpeciesID();
       document.getElementById("pitanje").append(i);
       document.getElementById("pitanje").append(id);
       const plants = await this.$axios.get(
-      `http://localhost:3000/botanical_family_plant_species/${id}`
+        `http://localhost:3000/botanical_family_plant_species/${id}`
       );
       console.log(plants.data);
       this.plants = plants.data.data;
-   },
+    },
 
     getRandomBotanicalPlant() {
       const json = require("./botanical_family.json");
@@ -205,14 +213,13 @@ export default {
     // async getCorrectAnswerFromBotanicalFamily() {
     //   // TODO uzeti varijablu randomGeneratedPlant i potražiti njenu botanicku vrstu
     //   // i ispisati je u jednu labelu od nasumucnog radio botuna
-      
+
     //   const plants = await this.$axios.get(
     //   `http://localhost:3000/botanical_family_plant_species/${id}`
     //   );
     //   console.log(plants.data);
     //   this.plants = plants.data.data;
-    //   }, 
-    
+    //   },
 
     // helper funkcije
     reloadPage() {
@@ -224,10 +231,10 @@ export default {
     },
   },
   data() {
-   return {
-   plants: ""
-     }
-  } 
+    return {
+      plants: "",
+    };
+  },
 };
 const pitanje = document.getElementById("pitanje");
 function getRandomPlantSpeciesID() {

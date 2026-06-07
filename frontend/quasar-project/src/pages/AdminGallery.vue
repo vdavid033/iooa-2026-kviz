@@ -1,6 +1,16 @@
 <template>
   <div class="admin-container">
-    <h3>Galerija slika</h3>
+    <div class="gallery-header">
+      <q-btn
+        flat
+        color="primary"
+        icon="arrow_back"
+        label="Natrag"
+        @click="$router.push('/PregledBiljaka')"
+      />
+    </div>
+
+    <h3 class="gallery-title">Galerija slika</h3>
 
     <div class="top-bar">
       <q-btn color="primary" icon="add" label="Dodaj sliku" @click="openAddDialog" />
@@ -311,6 +321,17 @@ async function addImage() {
   margin-bottom: 20px;
   position: relative;
   z-index: 10;
+}
+
+.gallery-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.gallery-title {
+  margin: 18px 0 28px;
+  text-align: center;
 }
 
 .filter-row {
