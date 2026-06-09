@@ -7,7 +7,7 @@ Kviz Biljne vrste
 - Michella Galich
 - Valentina Miculinić
 - Vicenco Tomaš
-- Denis Subašić -Fran Gunja, -Goran Borevac -Đana Haskić Kviz Biljne vrste
+- Denis Subašić   
 - Paolo Pelesk
 - Kristijan Rabak
 - Zvonimir Mandekić
@@ -22,3 +22,6 @@ Kviz Biljne vrste
 - Patrik Skradski
 - Franko Krstić
 - Ivan Posel
+- Fran Gunja
+- Goran Borevac
+- Đana Haskić
