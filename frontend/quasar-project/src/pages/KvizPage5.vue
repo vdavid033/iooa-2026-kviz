@@ -5,6 +5,38 @@
       <div class="text-h6">Bodovi: {{ state.bodovi }}</div>
     </div>
 
+    <!-- HINTOVI -->
+    <div class="q-pa-md">
+      <q-banner inline-actions rounded class="bg-grey-2 text-dark hint-banner">
+        <div>
+          <div class="text-subtitle1 text-weight-medium">
+            Hintovi: {{ state.hintoviPreostalo }} / {{ state.ukupnoHintova }}
+          </div>
+          <div class="text-caption">
+            Gumb "Zatraži hint" možeš koristiti tijekom cijelog kviza.
+          </div>
+        </div>
+
+        <template v-slot:action>
+          <q-btn
+            color="positive"
+            text-color="white"
+            label="Zatraži hint"
+            :disable="state.hintoviPreostalo <= 0"
+            @click="useHint"
+          />
+        </template>
+      </q-banner>
+
+      <q-banner
+        v-if="state.hintPoruka"
+        rounded
+        class="bg-blue-1 text-dark q-mt-sm hint-banner"
+      >
+        {{ state.hintPoruka }}
+      </q-banner>
+    </div>
+
     <!-- PITANJE -->
     <div class="q-pa-md q-gutter-sm">
       <q-banner inline-actions rounded class="bg-positive text-white">
@@ -202,7 +234,11 @@
 <script>
 import { onMounted, reactive } from "vue";
 import axios from "axios";
+import correctSound from "src/assets/correct.mp3";
+import incorrectSound from "src/assets/incorrect.mp3";
 
+
+const UKUPNO_HINTOVA = 3;
 
 const porukeOhrabrenja = [
   "Nema veze, sljedeći pokušaj može biti uspješniji!",
@@ -236,6 +272,9 @@ export default {
       brojTocnih: 0,
       brojNetocnih: 0,
       bodovi: 0,
+      ukupnoHintova: UKUPNO_HINTOVA,
+      hintoviPreostalo: UKUPNO_HINTOVA,
+      hintPoruka: "",
 
       image: "",
       alert: false,
@@ -258,6 +297,11 @@ praznina: {
     });
 
     const crticaRefs = {};
+    const correctAudio = new Audio(correctSound);
+    const incorrectAudio = new Audio(incorrectSound);
+
+    correctAudio.preload = "auto";
+    incorrectAudio.preload = "auto";
 
     onMounted(async () => {
 
@@ -274,6 +318,8 @@ praznina: {
 
     // ================= QUESTION =================
     async function loadQuestion() {
+      state.hintPoruka = "";
+
       const json = await axios.get("http://localhost:3000/plant_species/");
 
       state.plant =
@@ -445,9 +491,73 @@ function onCrticaDelete(i, event) {
   }
 }
 
+    // ================= HINTS =================
+    function useHint() {
+      if (state.hintoviPreostalo <= 0) {
+        state.hintPoruka = "Nemaš više dostupnih hintova.";
+        return;
+      }
+
+      state.hintoviPreostalo -= 1;
+
+      if (state.praznina.aktivan) {
+        const revealed = revealNextHintLetter();
+        state.praznina.uneseniOdgovor = state.praznina.crticePrikaz.join("");
+        state.hintPoruka = revealed
+          ? "Hint: Otkriveno je jedno slovo u odgovoru."
+          : "Hint: Sva slova u odgovoru su već otkrivena.";
+        return;
+      }
+
+      if (state.trueFalseMode) {
+        state.hintPoruka = `Hint: Točna biljka počinje slovom "${getFirstLetter(
+          state.plant.croatian_name
+        )}".`;
+        return;
+      }
+
+      state.hintPoruka = `Hint: Točan latinski naziv počinje slovom "${getFirstLetter(
+        state.tocanOdgovor.latin_name
+      )}".`;
+    }
+
+    function revealNextHintLetter() {
+      const letters = state.praznina.tocniOdgovor.split("");
+
+      for (let i = 0; i < letters.length; i++) {
+        if (letters[i] !== " " && state.praznina.crticePrikaz[i] === "") {
+          state.praznina.crticePrikaz[i] = letters[i];
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function getFirstLetter(value) {
+      return value?.trim().charAt(0).toUpperCase() || "?";
+    }
+
     // ================= LABEL =================
     function getLabel(o) {
       return state.trueFalseMode ? o.croatian_name : o.latin_name;
+    }
+
+    // ================= SOUND =================
+    function playFeedbackSound(isCorrect) {
+      const audio = isCorrect ? correctAudio : incorrectAudio;
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+        console.warn("Zvuk odgovora nije reproduciran.", error);
+      }
     }
 
     // ================= CHECK =================
@@ -469,6 +579,7 @@ function onCrticaDelete(i, event) {
           porukeOhrabrenja[Math.floor(Math.random() * porukeOhrabrenja.length)];
         }
 
+        playFeedbackSound(state.lastCorrect);
         state.alert = true;
         return;
       }
@@ -499,6 +610,7 @@ function onCrticaDelete(i, event) {
         porukeOhrabrenja[Math.floor(Math.random() * porukeOhrabrenja.length)];
       }
 
+      playFeedbackSound(state.lastCorrect);
       state.alert = true;
     }
 
@@ -568,6 +680,7 @@ function onCrticaDelete(i, event) {
       nextQuestion,
       restartQuiz,
       getLabel,
+      useHint,
 
     };
   },
@@ -579,6 +692,10 @@ function onCrticaDelete(i, event) {
   font-size: 20px;
   color: white;
   margin-left: 10px;
+}
+
+.hint-banner {
+  width: 700px;
 }
 
 .odgovori {
