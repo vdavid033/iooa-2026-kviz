@@ -1,0 +1,50 @@
+
+class zaposlenik:
+    svi_dohotci_ispod_1000 = 0
+
+    def __init__(self, ime):
+        self.ime = ime
+        self.osobni_dohotci = []
+
+    def osobnidohodak(self, iznos):
+        self.osobni_dohotci.append(iznos)
+
+        if iznos < 1000:
+            zaposlenik.svi_dohotci_ispod_1000 += 1
+
+    def prosjek(self):
+        if len(self.osobni_dohotci) == 0:
+            return 0
+        
+        return sum(self.osobni_dohotci) / len(self.osobni_dohotci)
+    
+
+    @staticmethod
+    def broj_ispod_1000():
+        return zaposlenik.svi_dohotci_ispod_1000
+    
+
+z1 = zaposlenik("Marko")
+z2 = zaposlenik("Ivana")
+z3 = zaposlenik("Ena")
+
+for i in range(4):
+    iznos = float(input("unesi dohodak za Marka: "))
+    z1.osobni_dohotci(iznos)
+
+
+for i in range(4):
+    iznos = float(input("unesi dohodak za Ivanu: "))
+    z2.osobni_dohotci(iznos)
+
+
+for i in range(4):
+    iznos = float(input("unesi dohodak za Enu: "))
+    z3.osobni_dohotci(iznos)
+
+print("Prosjek Marko: ",z1.prosjek())
+print("Prosjek Ivana: ",z2.prosjek())
+print("Prosjek Ena: ",z3.prosjek())
+
+print("ukupan dohodak < 1000: ")
+zaposlenik.broj_ispod_1000

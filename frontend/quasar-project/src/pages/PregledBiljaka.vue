@@ -26,6 +26,10 @@
           <q-item-section avatar><q-icon name="edit" /></q-item-section>
           <q-item-section class="text-weight-bold">Uređivanje</q-item-section>
         </q-item>
+        <q-item clickable class="text-white q-my-sm" @click="$router.push('/admingallery')">
+          <q-item-section avatar><q-icon name="photo_library" /></q-item-section>
+          <q-item-section class="text-weight-bold">Galerija</q-item-section>
+        </q-item>
       </q-list>
     </div>
 

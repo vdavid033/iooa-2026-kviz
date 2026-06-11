@@ -17,14 +17,23 @@
           </q-avatar>
           Dobrodošli u kviz o biljnim vrstama
         </q-toolbar-title>
-
-        <!-- <q-btn
-          href="http://agro.veleri.hr/biljne-vrste/"
-          label="Glavna stranica"
+        <q-btn
+          v-if="!isLoggedIn"
+          label="Prijava"
           color="white"
           flat
-          icon="home"
-        /> -->
+          icon="login"
+          to="/login"
+        />
+
+        <q-btn
+          v-else
+          label="Odjava"
+          color="white"
+          flat
+          icon="logout"
+          @click="logout"
+        />
         <q-btn
           flat
           color="white"
@@ -49,8 +58,13 @@
   </q-layout>
 </template>
 
+
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
+import { useQuasar } from "quasar";
+
+
 
 const linksList = [
   {
@@ -60,19 +74,96 @@ const linksList = [
     link: "https://quasar.dev",
   },
 ];
-
 export default defineComponent({
   name: "MainLayout",
 
   setup() {
+    const router = useRouter();
+    const $q = useQuasar();
     const leftDrawerOpen = ref(false);
+    const isLoggedIn = ref(false);
+
+    // provjera auth stanja
+    const checkAuth = () => {
+  const token = localStorage.getItem("token")
+  const expiresAt = localStorage.getItem("expiresAt")
+
+  if (!token || !expiresAt) {
+    isLoggedIn.value = false
+    return
+  }
+
+  // provjera isteka tokena
+  if (Date.now() > Number(expiresAt)) {
+    logout()
+    return
+  }
+
+  isLoggedIn.value = true
+}
+let logoutTimer = null
+
+// postavljanje auto logouta
+const startAutoLogout = () => {
+  const expiresAt = localStorage.getItem("expiresAt")
+  if (!expiresAt) return
+
+  const timeLeft = Number(expiresAt) - Date.now()
+
+  if (timeLeft <= 0) {
+    logout()
+  } else {
+    logoutTimer = setTimeout(logout, timeLeft)
+  }
+}
+
+
+    //logout funkcija 
+    const logout = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("expiresAt");
+      isLoggedIn.value = false;
+
+      $q.notify({
+          type: "positive",
+          message: "Uspješno ste se odjavili",
+          position: "top",
+          timeout: 2500,
+        });
+      router.push("/");
+    };
+
+    //  toggle drawer
+    const toggleLeftDrawer = () => {
+      leftDrawerOpen.value = !leftDrawerOpen.value;
+    };
+// inicijalna provjera auth stanja i postavljanje auto logouta
+      onMounted(() => {
+      checkAuth()
+      startAutoLogout()
+
+      window.addEventListener("storage", () => {
+      checkAuth()
+      startAutoLogout()
+  })
+})
+      // cleanup
+      onBeforeUnmount(() => {
+      window.removeEventListener("storage", () => {
+      checkAuth()
+      startAutoLogout()
+  })
+      if (logoutTimer) clearTimeout(logoutTimer)
+})
+
 
     return {
       essentialLinks: linksList,
       leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
-      },
+      toggleLeftDrawer,
+      isLoggedIn,
+      logout,
     };
   },
 });

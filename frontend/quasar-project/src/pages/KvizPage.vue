@@ -1,7 +1,6 @@
 <template>
   <div class="relative fixed-center">
     <div class="q-pa-md q-gutter-sm">
-      
       <!-- <q-btn color="white" text-color="black" label="Prethodno" />
       <q-btn-group>
         <q-btn color="secondary" glossy label="1" />
@@ -17,20 +16,19 @@
       /> -->
     </div>
     <div class="q-pa-md q-gutter-sm">
-    <q-banner inline-actions rounded class="bg-green text-white">
-      <div id class="text-h5 h5 full-width">
-          <span><a id="clicks">0</a>. </span> <span id="pitanje">
-          </span>
-          </div>
-    </q-banner>
-          <q-img width="700px" height="400px"
-            src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Violet.JPG"
-            :ratio="16 / 9"
-          />
-
-      
-  </div>
-   <!-- <div class="q-pa-md">
+      <q-banner inline-actions rounded class="bg-green text-white">
+        <div id class="text-h5 h5 full-width">
+          <span><a id="clicks">0</a>. </span> <span id="pitanje"> </span>
+        </div>
+      </q-banner>
+      <q-img
+        width="700px"
+        height="400px"
+        src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Violet.JPG"
+        :ratio="16 / 9"
+      />
+    </div>
+    <!-- <div class="q-pa-md">
       <div class="q-col-gutter-md row items-start">
         <div id class="col-4 full-width">
           <p> <a id="clicks">0</a> </p> <div id="pitanje">
@@ -146,7 +144,6 @@ export default {
   },
 
   methods: {
-    
     async allPlants() {
       const plants = await axios.get(`http://localhost:3000/plant_species/`);
       const jsonObject = plants.data.data;
@@ -156,8 +153,8 @@ export default {
       return naziv;
     },
     brPitanja() {
-    clicks += 1;
-    document.getElementById("clicks").innerHTML = clicks;
+      clicks += 1;
+      document.getElementById("clicks").innerHTML = clicks;
     },
 
     generateQ() {
