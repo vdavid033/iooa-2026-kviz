@@ -33,17 +33,26 @@
 
     <div class="grid">
       <div class="card" v-for="img in images" :key="img.id">
-        <img
-          :src="img.image_url"
-          class="real-image"
-          @error="e => e.target.src='https://via.placeholder.com/120'"
-        />
+        <div class="image-wrapper">
+          <img
+            :src="img.image_url"
+            class="real-image"
+            @click="openImageDetails(img)"
+            @error="e => e.target.src='https://via.placeholder.com/120'"
+          />
+          <q-tooltip v-if="img.description" class="description-tooltip">
+            {{ img.description }}
+          </q-tooltip>
+        </div>
 
         <div class="meta">
           <div class="image-name">{{ img.name || 'Bez naziva' }}</div>
           <div class="image-source" v-if="img.source">{{ img.source }}</div>
           <div class="species-name" v-if="img.plant_species_names">
             {{ img.plant_species_names }}
+          </div>
+          <div class="image-description" v-if="img.description">
+            {{ img.description }}
           </div>
         </div>
 
@@ -142,6 +151,61 @@
       </q-card>
     </q-dialog>
 
+    <!-- Dialog za pregled slike -->
+    <q-dialog v-model="detailsDialogOpen">
+      <q-card class="details-dialog">
+        <q-card-section class="details-header">
+          <div class="text-h6">{{ selectedImage?.name || 'Pregled slike' }}</div>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="details-body" v-if="selectedImage">
+          <img
+            :src="selectedImage.image_url"
+            class="details-image"
+            @error="e => e.target.src='https://via.placeholder.com/420'"
+          />
+
+          <div class="details-list">
+            <div class="details-row" v-if="selectedImage.plant_species_names">
+              <span>Hrvatski naziv vrste</span>
+              <strong>{{ selectedImage.plant_species_names }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImage.plant_species_latin_names">
+              <span>Latinski naziv vrste</span>
+              <strong>{{ selectedImage.plant_species_latin_names }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImageFileName">
+              <span>Naziv datoteke</span>
+              <strong>{{ selectedImageFileName }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImageDate">
+              <span>Datum dodavanja</span>
+              <strong>{{ selectedImageDate }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImage.source">
+              <span>Izvor</span>
+              <strong>{{ selectedImage.source }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImage.description">
+              <span>Opis</span>
+              <strong>{{ selectedImage.description }}</strong>
+            </div>
+
+            <div class="details-row" v-if="selectedImage.image_url">
+              <span>URL slike</span>
+              <strong class="details-url">{{ selectedImage.image_url }}</strong>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
   </div>
 </template>
 
@@ -171,6 +235,8 @@ const editImageUrl = ref("")
 const editImageDescription = ref("")
 const editImageSource = ref("")
 const editImageSpeciesId = ref(null)
+const detailsDialogOpen = ref(false)
+const selectedImage = ref(null)
 
 const speciesOptions = computed(() => {
   const seen = new Set()
@@ -187,6 +253,16 @@ const speciesOptions = computed(() => {
   })
 
   return options
+})
+
+const selectedImageFileName = computed(() => {
+  if (!selectedImage.value) return ""
+  return getImageFileName(selectedImage.value)
+})
+
+const selectedImageDate = computed(() => {
+  if (!selectedImage.value) return ""
+  return formatImageDate(selectedImage.value)
 })
 
 function getImageSpeciesIds(img) {
@@ -243,6 +319,11 @@ function openEditDialog(img) {
   const speciesIds = getImageSpeciesIds(img)
   editImageSpeciesId.value = speciesIds.length ? speciesIds[0] : null
   editDialogOpen.value = true
+}
+
+function openImageDetails(img) {
+  selectedImage.value = img
+  detailsDialogOpen.value = true
 }
 
 function openAddDialog() {
@@ -304,6 +385,30 @@ async function addImage() {
     console.error("Error adding image:", e)
   }
 }
+
+function getImageFileName(img) {
+  const explicitFileName = img.file_name || img.filename || img.original_filename
+  if (explicitFileName) return explicitFileName
+
+  if (!img.image_url) return ""
+
+  try {
+    const path = new URL(img.image_url).pathname
+    return decodeURIComponent(path.split("/").pop() || "")
+  } catch {
+    return img.image_url.split("/").pop() || ""
+  }
+}
+
+function formatImageDate(img) {
+  const dateValue = img.created_at || img.createdAt || img.date_added || img.added_at || img.created_on
+  if (!dateValue) return ""
+
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return dateValue
+
+  return date.toLocaleDateString("hr-HR")
+}
 </script>
 
 <style>
@@ -352,10 +457,15 @@ async function addImage() {
   align-items: center;
 }
 
+.image-wrapper {
+  line-height: 0;
+}
+
 .real-image {
   width: 120px;
   height: 120px;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .actions {
@@ -407,5 +517,74 @@ async function addImage() {
   color: #888;
   margin-top: 2px;
   font-style: italic;
+}
+
+.image-description {
+  font-size: 11px;
+  color: #4f5f50;
+  line-height: 1.25;
+  margin-top: 4px;
+  max-width: 140px;
+  overflow-wrap: anywhere;
+}
+
+.description-tooltip {
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.details-dialog {
+  width: 720px;
+  max-width: 92vw;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.details-image {
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f4f7f2;
+}
+
+.details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.details-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 14px;
+  color: #2c3e2d;
+  line-height: 1.35;
+}
+
+.details-row span {
+  color: #666;
+}
+
+.details-url {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .details-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
 }
 </style>
