@@ -1,5 +1,5 @@
 <template>
-  <div class="relative fixed-center">
+  <div style="max-width: 750px; margin: 0 auto; padding: 16px;">
     <div class="q-pa-md q-gutter-sm">
       <!-- <q-btn color="white" text-color="black" label="Prethodno" />
       <q-btn-group>

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative fixed-center">
+  <div style="max-width: 750px; margin: 0 auto; padding: 16px;">
     <div class="q-pa-md q-gutter-sm">
       <q-banner inline-actions rounded class="bg-green text-white">
         <div id class="text-h5 h5 full-width">

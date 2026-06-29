@@ -1,5 +1,5 @@
 <template>
-  <div class="relative fixed-center">
+  <div style="max-width: 750px; margin: 0 auto; padding: 16px;">
     <!-- BODOVI -->
     <div class="q-pa-md">
       <div class="text-h6">Bodovi: {{ state.bodovi }}</div>
@@ -224,7 +224,8 @@
             flat
             label="Početna"
             color="primary"
-            href="/"
+            v-close-popup
+            @click="$router.push('/')"
           />
         </q-card-actions>
       </q-card>
@@ -749,19 +750,23 @@ async function handleFinish() {
     }
   } else {
     //  USER NIJE LOGIRAN
-   $q.notify({
-  type: "warning",
-  message: "Prijavite se kako bi se rezultati spremili!",
-  actions: [
-    {
-      label: "LOGIN",
-      color: "white",
-      handler: () => {
-        router.push("/login");
-      },
-    },
-  ],
-});
+    $q.notify({
+      type: "warning",
+      icon: "lock",
+      message: "Niste prijavljeni — rezultati neće biti spremljeni.",
+      caption: "Prijavite se ili registrirajte kako bi se vaši bodovi trajno pohranili.",
+      position: "top",
+      timeout: 8000,
+      actions: [
+        {
+          label: "Prijava",
+          color: "white",
+          handler: () => {
+            router.push("/login");
+          },
+        },
+      ],
+    });
   }
 
   // popup kao i prije
