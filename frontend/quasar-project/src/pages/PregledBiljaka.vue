@@ -87,7 +87,7 @@
                 color="red-7"
                 icon="delete"
                 size="sm"
-                @click="obrisiBiljku(props.row.id)"
+                @click="obrisiBiljku(props.row.id, props.row.croatian_name)"
               />
 
             </q-td>
@@ -137,8 +137,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import axios from 'axios'
 
+const $q = useQuasar()
 const biljke = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
@@ -204,13 +206,38 @@ const dodajBiljku = async () => {
   }
 }
 
-const obrisiBiljku = async (id) => {
-  try {
-    await axios.delete(`http://localhost:3000/api/obrisiBiljku/${id}`)
-    fetchBiljke()
-  } catch (err) {
-    console.error(err)
-  }
+const obrisiBiljku = (id, naziv) => {
+  $q.dialog({
+    title: 'Potvrda brisanja',
+    message: `Jeste li sigurni da želite obrisati biljnu vrstu <strong>${naziv}</strong>?<br><br>
+      <span style="color: #c62828;">⚠ Ova radnja je <strong>trajna i nepovratna</strong>. Svi podaci vezani uz ovu biljnu vrstu (opisi, slike, kviz pitanja) bit će trajno izgubljeni.</span>`,
+    html: true,
+    ok: { label: 'Da, obriši', color: 'red-7', flat: true },
+    cancel: { label: 'Odustani', color: 'grey', flat: true },
+    persistent: true
+  }).onOk(async () => {
+    try {
+      await axios.delete(`http://localhost:3000/api/obrisiBiljku/${id}`)
+      fetchBiljke()
+      $q.notify({
+        type: 'positive',
+        message: `Biljna vrsta "${naziv}" uspješno je obrisana.`,
+        position: 'top',
+        timeout: 3000
+      })
+    } catch (err) {
+      console.error(err)
+      $q.notify({
+        type: 'negative',
+        icon: 'warning',
+        message: 'Brisanje nije uspjelo.',
+        caption: 'Mogući razlozi: biljna vrsta koristi se u kviz pitanjima ili galeriji. Najprije uklonite sve povezane zapise, a zatim pokušajte ponovo.',
+        position: 'top',
+        timeout: 8000,
+        actions: [{ label: 'Zatvori', color: 'white', handler: () => {} }]
+      })
+    }
+  })
 }
 
 onMounted(() => {

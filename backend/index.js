@@ -1006,6 +1006,7 @@ app.put("/image/:id", async (req, res) => {
 app.delete("/image/:id", async (req, res) => {
   const imageId = req.params.id;
 
+  // brisanje slike
   try {
     await db.transaction(async (trx) => {
       await trx("plant_species_image").where({ image_id: imageId }).delete();
