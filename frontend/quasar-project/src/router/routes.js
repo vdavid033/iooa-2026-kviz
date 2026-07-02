@@ -14,6 +14,7 @@ const routes = [
       { path: "kviz4", component: () => import("pages/KvizPage4.vue") },
       { path: "kviz5", component: () => import("pages/KvizPage5.vue") },
       { path: "admingallery", component: () => import("pages/AdminGallery.vue") },
+      { path: "galerija-dijelova", component: () => import("pages/GalerijaDijelova.vue") },
       { path: "registration", component: () => import("pages/RegistrationPage.vue") },
       { path: "leaderboard", component: () => import("pages/LeaderboardPage.vue") },
       { path: "login", component: () => import("pages/LoginForm.vue") },
