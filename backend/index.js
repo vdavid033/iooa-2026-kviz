@@ -1020,6 +1020,96 @@ app.delete("/image/:id", async (req, res) => {
   }
 });
 
+// ---- Galerija slika za dijelove biljaka (korisnička priča #138) ----
+
+// Popis biljnih vrsta koje imaju barem jednu sliku vezanu uz neki dio biljke
+// (koristi se za padajući izbornik u galeriji)
+app.get("/plant_species_with_part_images", async (req, res) => {
+  try {
+    const rows = await db("plant_part_image as ppi")
+      .distinct("ps.id", "ps.croatian_name", "ps.latin_name")
+      .innerJoin("plant_species as ps", "ppi.plant_species_id", "ps.id")
+      .orderBy("ps.croatian_name");
+    res.json({ error: false, data: rows });
+  } catch (error) {
+    console.error("plant_species_with_part_images error:", error);
+    res
+      .status(500)
+      .json({ error: true, message: "Greska pri dohvatu biljnih vrsta" });
+  }
+});
+
+// Slike odabrane biljne vrste grupirane po dijelu biljke
+// Vraca svaki dio biljke (useful_part) s pripadajucim popisom slika
+app.get("/plant_part_images/:plant_species_id", async (req, res) => {
+  const plantSpeciesId = req.params.plant_species_id;
+  if (!plantSpeciesId) {
+    return res
+      .status(400)
+      .json({ error: true, message: "Nedostaje plant_species_id" });
+  }
+
+  try {
+    const rows = await db("plant_part as pp")
+      .select(
+        "pp.useful_part_id",
+        "up.croatian_name as part_croatian_name",
+        "up.latin_name as part_latin_name",
+        "pp.description as part_description",
+        "i.id as image_id",
+        "i.name as image_name",
+        "i.description as image_description",
+        "i.source as image_source",
+        "i.image_url as image_url",
+        "i.upload_date as image_upload_date",
+      )
+      .innerJoin("useful_part as up", "pp.useful_part_id", "up.id")
+      .leftJoin("plant_part_image as ppi", function () {
+        this.on("ppi.plant_species_id", "pp.plant_species_id").andOn(
+          "ppi.useful_part_id",
+          "pp.useful_part_id",
+        );
+      })
+      .leftJoin("image as i", "ppi.image_id", "i.id")
+      .where("pp.plant_species_id", plantSpeciesId)
+      .orderBy(["up.croatian_name", "i.id"]);
+
+    // grupiranje redova po dijelu biljke
+    const parts = [];
+    const byPart = {};
+    for (const r of rows) {
+      if (!byPart[r.useful_part_id]) {
+        byPart[r.useful_part_id] = {
+          useful_part_id: r.useful_part_id,
+          croatian_name: r.part_croatian_name,
+          latin_name: r.part_latin_name,
+          description: r.part_description,
+          images: [],
+        };
+        parts.push(byPart[r.useful_part_id]);
+      }
+      if (r.image_id) {
+        byPart[r.useful_part_id].images.push({
+          id: r.image_id,
+          name: r.image_name,
+          description: r.image_description,
+          source: r.image_source,
+          image_url: r.image_url,
+          upload_date: r.image_upload_date,
+        });
+      }
+    }
+
+    res.json({ error: false, data: parts });
+  } catch (error) {
+    console.error("plant_part_images load error:", error);
+    res.status(500).json({
+      error: true,
+      message: "Greska pri dohvatu slika dijelova biljke",
+    });
+  }
+});
+
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");
 });
