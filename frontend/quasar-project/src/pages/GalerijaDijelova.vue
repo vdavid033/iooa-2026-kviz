@@ -35,6 +35,13 @@
           </div>
         </div>
 
+        <div
+          v-if="part.description"
+          class="part-description text-body2 text-grey-8 q-mb-sm"
+        >
+          {{ part.description }}
+        </div>
+
         <div v-if="part.images.length" class="images-grid">
           <!-- SI-3 (Krstić): klik na sliku otvara uvećani prikaz (lightbox) s opisom/izvorom/datumom -->
           <div v-for="img in part.images" :key="img.id" class="image-card">
@@ -135,5 +142,10 @@ onMounted(loadSpecies)
 .part-block {
   border-bottom: 1px solid #e0e6de;
   padding-bottom: 16px;
+}
+
+.part-description {
+  max-width: 720px;
+  line-height: 1.4;
 }
 </style>
